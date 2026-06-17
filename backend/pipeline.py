@@ -47,35 +47,23 @@ def get_energy_scores(video_path: str, segments: list[dict]) -> list[dict]:
         start_sample = int(seg["start"] * sr)
         end_sample = int(seg["end"] * sr)
         chunk = y[start_sample:end_sample]
-
-        if len(chunk) == 0:
-            energy = 0.0
-        else:
-            energy = float(np.sqrt(np.mean(chunk ** 2)))  # RMS energy
-
+        energy = float(np.sqrt(np.mean(chunk ** 2))) if len(chunk) > 0 else 0.0
         scored.append({**seg, "energy": energy})
 
-    # Normalize energy to 0–1 scale
-    energies = [s["energy"] for s in scored]
-    max_e = max(energies) if max(energies) > 0 else 1
+    # Normalize to 0-1
+    max_e = max(s["energy"] for s in scored) or 1
     for s in scored:
         s["energy"] = round(s["energy"] / max_e, 3)
 
     return scored
 
 
-# ── 3. Group segments into candidate windows ──────────────────────────────────
+# 3. Candidate window builder
 
 def build_candidate_windows(scored_segments: list[dict],
                              window_sec: float = 60.0,
                              min_clip: float = 20.0,
                              max_clip: float = 90.0) -> list[dict]:
-    """
-    Slide a window over segments and score each window by:
-      - average audio energy
-      - word density (how much is being said)
-    Returns top candidate windows for the LLM to evaluate.
-    """
     if not scored_segments:
         return []
 
@@ -86,7 +74,6 @@ def build_candidate_windows(scored_segments: list[dict],
         window_start = seg["start"]
         window_end = window_start + window_sec
 
-        # Collect all segments that fall in this window
         window_segs = [s for s in scored_segments
                        if s["start"] >= window_start and s["end"] <= window_end]
 
@@ -105,8 +92,6 @@ def build_candidate_windows(scored_segments: list[dict],
         avg_energy = np.mean([s["energy"] for s in window_segs])
         word_count = len(text.split())
         word_density = word_count / max(duration, 1)
-
-        # Combined score: weight energy more heavily
         score = (avg_energy * 0.7) + (min(word_density / 3, 1.0) * 0.3)
 
         candidates.append({
@@ -118,21 +103,19 @@ def build_candidate_windows(scored_segments: list[dict],
             "word_count": word_count,
         })
 
-        # Advance by half a window for overlap
         i += max(1, len(window_segs) // 2)
 
-    # Return top 12 candidates by score for the LLM to pick from
     candidates.sort(key=lambda x: x["score"], reverse=True)
     return candidates[:12]
 
 
-# ── 4. LLM clip selection ─────────────────────────────────────────────────────
+# 4. LLM clip selection
 
 def pick_clips(scored_segments: list[dict]) -> list[dict]:
     candidates = build_candidate_windows(scored_segments)
 
     if not candidates:
-        raise ValueError("No candidate windows found — video may be too short or silent.")
+        raise ValueError("No candidate windows — video may be too short or silent.")
 
     candidate_text = ""
     for idx, c in enumerate(candidates):
