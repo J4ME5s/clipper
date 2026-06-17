@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+@import "tailwindcss";
+
+/* Dark mode (default) */
+:root {
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --border: #1f1f1f;
+  --text: #e8e8e8;
+  --muted: #555555;
+  --accent: #c8f135;
+  --accent-dim: #a8d120;
+  --danger: #ff4444;
+  --radius: 2px;
+  --grid-line: rgba(255,255,255,0.015);
+}
+
+/* Light mode — applied when <html> has class "light" */
+html.light {
+  --bg: #f5f5f0;
+  --surface: #ffffff;
+  --border: #e0e0d8;
+  --text: #111111;
+  --muted: #77776e;
+  --accent: #5a9e00;
+  --accent-dim: #4a8800;
+  --danger: #cc2222;
+  --grid-line: rgba(0,0,0,0.04);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.2s, color 0.2s;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Subtle grid texture on the background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Mono font for labels, timestamps, status text */
+.mono {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
