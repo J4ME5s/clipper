@@ -144,24 +144,15 @@ def pick_clips(scored_segments: list[dict]) -> list[dict]:
 
     prompt = f"""You are an expert clip editor for gaming and vtuber content on TikTok, YouTube Shorts, and Twitch clips.
 
-You will be given a list of candidate moments from a stream, each with:
-- Timestamps
-- An energy score (0–1, higher = louder/more hype audio)
-- Word count
-- A transcript snippet
+You will be given candidate moments with timestamps, energy scores, and transcript snippets.
 
-Your job: pick the 3–5 BEST clips that would perform well as short-form content.
-
-Prioritize moments that have:
+Pick the 3-5 BEST clips for short-form content. Prioritize:
 - Genuine reactions (surprise, hype, laughter, disbelief)
-- A clear beginning and payoff within the clip
+- Clear beginning and payoff within the clip
 - High energy OR emotionally interesting dialogue
 - Something a viewer would want to share
 
-Avoid:
-- Slow or quiet moments with no payoff
-- Clips that start or end mid-sentence awkwardly
-- Repetitive or filler content
+Avoid slow/quiet moments, mid-sentence starts/ends, filler content, and superchat/donation readings.
 
 Candidates:
 {candidate_text}
